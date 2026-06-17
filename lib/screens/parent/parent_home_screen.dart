@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../services/firestore_service.dart';
+import '../../services/notification_service.dart';
 import '../../theme/app_theme.dart';
 
 enum _Status { idle, loading, success, error }
@@ -40,6 +41,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
     final prefs = await SharedPreferences.getInstance();
     final parentUid = prefs.getString('uid') ?? '';
     if (parentUid.isEmpty) return;
+    await NotificationService.saveToken(parentUid);
     _requestSub =
         FirestoreService().listenToRequest(parentUid).listen((snap) {
       if (!snap.exists || !mounted) return;
@@ -85,6 +87,8 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
         'timestamp': FieldValue.serverTimestamp(),
         'status': 'pending',
       });
+
+      await NotificationService.sendTaxiRequest(linkedChildUid);
 
       if (!mounted) return;
       setState(() {

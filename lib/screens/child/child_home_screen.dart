@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../services/firestore_service.dart';
 import '../../services/geocoding_service.dart';
+import '../../services/notification_service.dart';
 import '../../theme/app_theme.dart';
 
 enum _ReqState { waiting, pending, accepted }
@@ -45,6 +46,9 @@ class _ChildHomeScreenState extends State<ChildHomeScreen> {
     final uid = prefs.getString('linkedWithUid') ?? '';
     if (uid.isEmpty) return;
     setState(() => _parentUid = uid);
+
+    final myUid = prefs.getString('uid') ?? '';
+    await NotificationService.saveToken(myUid);
 
     _sub = FirestoreService().listenToRequest(uid).listen((snap) async {
       if (!snap.exists || !mounted) return;

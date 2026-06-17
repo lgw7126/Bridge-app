@@ -10,4 +10,11 @@ class AppConfig {
   static bool get hasKakaoKey =>
       kakaoRestApiKey != 'YOUR_KAKAO_REST_API_KEY' &&
       kakaoRestApiKey.isNotEmpty;
+
+  // FCM 서버 키 — Firebase Console → 프로젝트 설정 → 클라우드 메시징 → 서버 키
+  // 주의: 프로토타입 전용. 실서비스는 Cloud Functions 사용 권장.
+  static const String fcmServerKey = 'YOUR_FCM_SERVER_KEY';
+
+  static bool get hasFcmKey =>
+      fcmServerKey != 'YOUR_FCM_SERVER_KEY' && fcmServerKey.isNotEmpty;
 }

@@ -1,20 +1,25 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'config/app_globals.dart';
 import 'firebase_options.dart';
-import 'theme/app_theme.dart';
-import 'screens/role_selection_screen.dart';
+import 'screens/child/child_home_screen.dart';
+import 'screens/child/child_link_screen.dart';
 import 'screens/parent/parent_code_screen.dart';
 import 'screens/parent/parent_home_screen.dart';
-import 'screens/child/child_link_screen.dart';
-import 'screens/child/child_home_screen.dart';
+import 'screens/role_selection_screen.dart';
+import 'services/notification_service.dart';
+import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  await NotificationService.initialize();
 
   final prefs = await SharedPreferences.getInstance();
   final String? role = prefs.getString('role');
@@ -47,6 +52,7 @@ class BridgeApp extends StatelessWidget {
       title: '안심 귀가',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme,
+      scaffoldMessengerKey: scaffoldMessengerKey,
       home: initialScreen,
     );
   }
