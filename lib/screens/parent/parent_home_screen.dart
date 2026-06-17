@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../services/firestore_service.dart';
 import '../../theme/app_theme.dart';
 
 enum _Status { idle, loading, success, error }
@@ -18,6 +21,36 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
   _Status _status = _Status.idle;
   DateTime? _lastSentTime;
   String? _errorMessage;
+  StreamSubscription? _requestSub;
+  String? _childStatus; // 'accepted'
+
+  @override
+  void initState() {
+    super.initState();
+    _listenToChildStatus();
+  }
+
+  @override
+  void dispose() {
+    _requestSub?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _listenToChildStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final parentUid = prefs.getString('uid') ?? '';
+    if (parentUid.isEmpty) return;
+    _requestSub =
+        FirestoreService().listenToRequest(parentUid).listen((snap) {
+      if (!snap.exists || !mounted) return;
+      final data = snap.data();
+      if (data == null) return;
+      final s = data['status'] as String?;
+      if ((s == 'accepted' || s == 'completed') && _childStatus != s) {
+        setState(() => _childStatus = s);
+      }
+    });
+  }
 
   // ─── 메인 버튼 탭 ───────────────────────────────────────────────
   Future<void> _onRequestTaxi() async {
@@ -334,26 +367,27 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
   }
 
   Widget _buildFooter() {
-    if (_status == _Status.success && _lastSentTime != null) {
+    // 자녀가 확인한 경우 — 최우선 표시
+    if (_childStatus == 'accepted' || _childStatus == 'completed') {
       return Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         decoration: BoxDecoration(
           color: Colors.green.shade50,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.green.shade200, width: 1.5),
+          border: Border.all(color: Colors.green.shade300, width: 1.5),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.access_time_rounded,
-                color: Colors.green.shade600, size: 24),
+            Icon(Icons.check_circle_rounded,
+                color: Colors.green.shade600, size: 28),
             const SizedBox(width: 10),
             Text(
-              '${_formatTime(_lastSentTime!)}에 전송됨',
+              '자녀가 확인했어요! 🚕',
               style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
                 color: Colors.green.shade700,
               ),
             ),
@@ -361,6 +395,54 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
         ),
       );
     }
+
+    // 요청 전송 후 대기 중
+    if (_status == _Status.success && _lastSentTime != null) {
+      return Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.green.shade50,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.green.shade200, width: 1.5),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.access_time_rounded,
+                    color: Colors.green.shade600, size: 24),
+                const SizedBox(width: 10),
+                Text(
+                  '${_formatTime(_lastSentTime!)}에 전송됨',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green.shade700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(
+                width: 20, height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2.5),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                '자녀 확인을 기다리는 중...',
+                style: TextStyle(fontSize: 18, color: Colors.grey.shade600),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
+
     return const SizedBox.shrink();
   }
 }

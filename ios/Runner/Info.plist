@@ -53,5 +53,10 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- url_launcher: 카카오맵 앱 연결 허용 -->
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>kakaomap</string>
+	</array>
 </dict>
 </plist>

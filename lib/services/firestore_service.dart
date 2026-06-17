@@ -93,4 +93,21 @@ class FirestoreService {
       return LinkResult.error;
     }
   }
+
+  /// 자녀가 requests 문서를 실시간 구독합니다.
+  Stream<DocumentSnapshot<Map<String, dynamic>>> listenToRequest(
+      String parentUid) {
+    return _db.collection('requests').doc(parentUid).snapshots();
+  }
+
+  /// 요청 상태를 업데이트합니다 (accepted / completed).
+  Future<void> updateRequestStatus(String parentUid, String status) async {
+    final data = <String, dynamic>{'status': status};
+    if (status == 'accepted') {
+      data['acceptedAt'] = FieldValue.serverTimestamp();
+    } else if (status == 'completed') {
+      data['completedAt'] = FieldValue.serverTimestamp();
+    }
+    await _db.collection('requests').doc(parentUid).update(data);
+  }
 }
