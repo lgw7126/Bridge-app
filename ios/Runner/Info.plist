@@ -41,6 +41,14 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- 위치 권한 설명 (한국어) -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>자녀가 택시를 불러드리기 위해 현재 위치가 필요합니다.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>자녀가 택시를 불러드리기 위해 현재 위치가 필요합니다.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>자녀가 택시를 불러드리기 위해 현재 위치가 필요합니다.</string>
+
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
